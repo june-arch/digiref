@@ -1,0 +1,53 @@
+{
+  "name": "digiref-backend",
+  "version": "0.0.1",
+  "description": "digiref-backend",
+  "scripts": {
+    "watch": "tsc --watch --preserveWatchOutput --pretty",
+    "dev": "NODE_ENV=development nodemon",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "build": "rimraf dist && tsc",
+    "start": "node dist/src/index.js",
+    "knex": "knex",
+    "dev:start": "knex migrate:latest && NODE_ENV=development nodemon --inspect src/index.ts"
+  },
+  "author": "Eri <erisitohang@users.noreply.github.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@fastify/cors": "^8.1.0",
+    "@fastify/multipart": "^7.4.1",
+    "@fastify/swagger": "^8.1.0",
+    "@fastify/swagger-ui": "^1.2.0",
+    "axios": "^1.15.2",
+    "bcrypt": "^5.1.0",
+    "date-fns": "^2.29.3",
+    "date-fns-tz": "^1.3.7",
+    "fastify": "^4.8.1",
+    "handlebars": "^4.7.7",
+    "json2csv": "^5.0.7",
+    "jsonwebtoken": "^8.5.1",
+    "knex": "^2.3.0",
+    "node-cron": "^3.0.2",
+    "nodemailer": "^6.9.1",
+    "pg": "^8.8.0",
+    "yup": "^0.32.11"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.0",
+    "@types/json2csv": "^5.0.3",
+    "@types/jsonwebtoken": "^8.5.9",
+    "@types/node": "^18.8.5",
+    "@types/node-cron": "^3.0.7",
+    "@types/nodemailer": "^6.4.7",
+    "dotenv-flow": "^3.2.0",
+    "fastify-tsconfig": "^1.0.1",
+    "nodemon": "^2.0.20",
+    "prettier": "^2.7.1",
+    "rimraf": "^3.0.2",
+    "sqlite3": "^5.1.2",
+    "ts-node": "^10.9.1",
+    "tsconfig-paths": "^4.1.0",
+    "typescript": "^5.9.3",
+    "zlib": "^1.0.5"
+  }
+}
