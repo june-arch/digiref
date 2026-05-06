@@ -1,4 +1,4 @@
-import { number, object, string, InferType, array } from "yup";
+import { number, object, string, InferType } from "yup";
 
 export const ALLOWED_MIMETYPES = ['image/jpeg', 'image/png', 'image/jpg', 'image/JPEG', 'image/PNG', 'image/JPG'];
 
@@ -13,18 +13,6 @@ export const createTenantSchema = object({
   village_id: number().required(),
   postcode_id: number().required(),
   role_id: number().required(),
-  // logo: array().of(
-  //   object().shape({
-  //     data: mixed().required().test('is-Uint8Array', 'Data harus berupa Uint8Array', (value) =>
-  //         value instanceof Uint8Array
-  //       ),
-  //     filename: string().required(),
-  //     encoding: string().required(),
-  //     mimetype: string().oneOf(ALLOWED_MIMETYPES, `Hanya jenis file berikut yang diizinkan: ${ALLOWED_MIMETYPES.join(', ')}`).required(),
-  //     limit: boolean().required(),
-  //   })
-  // ),
-  logo: array()
 });
 
 export type CreateTenant = InferType<typeof createTenantSchema>;
@@ -41,18 +29,6 @@ export const updateTenantSchema = object({
   village_id: number().optional(),
   postcode_id: number().optional(),
   role_id: number().optional(),
-  // logo: array().of(
-  //   object().shape({
-  //     data: mixed().required().test('is-Uint8Array', 'Data harus berupa Uint8Array', (value) =>
-  //         value instanceof Uint8Array
-  //       ),
-  //     filename: string().required(),
-  //     encoding: string().required(),
-  //     mimetype: string().oneOf(ALLOWED_MIMETYPES, `Hanya jenis file berikut yang diizinkan: ${ALLOWED_MIMETYPES.join(', ')}`).required(),
-  //     limit: boolean().required(),
-  //   })
-  // ),
-  logo: array()
 });
 
 export type UpdateTenant = InferType<typeof updateTenantSchema>;

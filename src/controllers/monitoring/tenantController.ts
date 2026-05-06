@@ -11,30 +11,35 @@ import { extname } from "path";
 import { randomBytes } from "crypto";
 import fs from "fs";
 import { validPassword } from "../../services/authService";
+import { ALLOWED_MIMETYPES } from "../../dto/tenantDto";
 
 const create = async (_request: FastifyRequest, _reply: FastifyReply) => {
-  const params: CreateTenant = await createTenantSchema.validate(_request.body);
+  // Ambil logo dari multipart — tidak lewat Yup schema
+  const req = _request as any;
+  const file = await req.file();
 
-  if(!(params.logo && params.logo.length > 0)) {
-    return _reply.code(400).send('logo tidak boleh kosong');
+  if (!file) {
+    return _reply.code(400).send({ message: 'logo tidak boleh kosong' });
   }
 
-  let file = params.logo[0];
+  if (!ALLOWED_MIMETYPES.includes(file.mimetype)) {
+    return _reply.code(400).send({ message: `Hanya jenis file berikut yang diizinkan: ${ALLOWED_MIMETYPES.join(', ')}` });
+  }
 
-  // Membuat nama file yang baru
+  // Baca data file jadi buffer
+  const fileBuffer = await file.toBuffer();
+
+  // Buat object params dari body
+  const params: CreateTenant = await createTenantSchema.validate(_request.body);
+
+  // Buat nama file baru
   const fileName = `logo-perusahaan-${Date.now()}-${randomBytes(4).toString("hex")}${extname(file.filename)}`;
 
-  // Mengganti nama file dengan nama yang baru
-  file.filename = fileName;
-
-  // Tulis data file ke dalam file di sistem file
+  // Tulis file
   await new Promise<void>((resolve, reject) => {
-    fs.writeFile(`${process.env.MONITORING_UPLOAD}logo/${file.filename}`, file.data, (err) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
-      }
+    fs.writeFile(`${process.env.MONITORING_UPLOAD}logo/${fileName}`, fileBuffer, (err) => {
+      if (err) reject(err);
+      else resolve();
     });
   });
 
@@ -63,34 +68,31 @@ const update = async (_request: FastifyRequest, _reply: FastifyReply) => {
 
   if(!tenant){
     return _reply.code(404).send('data tidak ditemukan');
-  } 
+  }
 
   let filename = '';
-  if((params.logo && params.logo.length > 0)) {
-    let file = params.logo[0];
+  const req = _request as any;
+  const file = await req.file();
 
-    const filenamePerusahaan = `logo-perusahaan-${Date.now()}-${randomBytes(4).toString("hex")}${extname(file.filename)}`;
-    // Mengganti nama file dengan nama yang baru
-    file.filename = filenamePerusahaan;
-    filename = filenamePerusahaan;
+  if (file) {
+    if (!ALLOWED_MIMETYPES.includes(file.mimetype)) {
+      return _reply.code(400).send({ message: `Hanya jenis file berikut yang diizinkan: ${ALLOWED_MIMETYPES.join(', ')}` });
+    }
 
-    // Tulis data file ke dalam file di sistem file
+    const fileBuffer = await file.toBuffer();
+    filename = `logo-perusahaan-${Date.now()}-${randomBytes(4).toString("hex")}${extname(file.filename)}`;
+
     await new Promise<void>((resolve, reject) => {
-      fs.writeFile(`${process.env.MONITORING_UPLOAD}logo/${file.filename}`, file.data, (err) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
+      fs.writeFile(`${process.env.MONITORING_UPLOAD}logo/${filename}`, fileBuffer, (err) => {
+        if (err) reject(err);
+        else resolve();
       });
     });
-    
+
+    // Hapus logo lama
     fs.unlink(`${process.env.MONITORING_UPLOAD}logo/${tenant.logo}`, (err) => {
-      if (err) {
-        console.log(err);
-        return;
-      }
-      console.log('logo deleted');
+      if (err) console.log('gagal hapus logo lama:', err.message);
+      else console.log('logo lama dihapus');
     });
   }
 
@@ -107,7 +109,6 @@ const update = async (_request: FastifyRequest, _reply: FastifyReply) => {
 
 const index = async (_request: FastifyRequest, _reply: FastifyReply) => {
   const Tenants = await findAll();
-
   _reply.send(Tenants);
 };
 
@@ -123,7 +124,7 @@ const show = async (
   const Tenant = await findById(tenantId);
   if(!Tenant){
     _reply.statusCode = 400;
-    return _reply.send('data tidak ditemukan');  
+    return _reply.send('data tidak ditemukan');
   }
   _reply.statusCode =200;
   return _reply.send(Tenant);
@@ -151,7 +152,7 @@ const changePassword = async (_request: FastifyRequest, _reply: FastifyReply) =>
 
   if(!tenant){
     return _reply.code(404).send('data tidak ditemukan');
-  } 
+  }
 
   if (!validPassword(params.old_password, tenant.password)) {
     return _reply.status(400).send({ message: "Invalid old password" });
@@ -197,9 +198,7 @@ export default async function authController(fastify: FastifyInstance) {
     handler: deleteTenant,
     schema: TenantDeleteSchema
   });
-  fastify.register(require('@fastify/multipart'), {
-    addToBody: true
-  });
+  fastify.register(require('@fastify/multipart'));
   fastify.post("/", {
     preHandler: [authMiddleware],
     handler: create,
