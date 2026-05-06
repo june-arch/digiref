@@ -14,30 +14,40 @@ import { validPassword } from "../../services/authService";
 import { ALLOWED_MIMETYPES } from "../../dto/tenantDto";
 
 const create = async (_request: FastifyRequest, _reply: FastifyReply) => {
-  // Ambil logo dari multipart — tidak lewat Yup schema
   const req = _request as any;
-  const file = await req.file();
 
-  if (!file) {
+  // Baca semua parts dari multipart
+  const fields: Record<string, any> = {};
+  const fileParts: any[] = [];
+
+  for await (const part of req.parts()) {
+    if (part.type === 'file') {
+      const buffer = await part.toBuffer();
+      fileParts.push({ fieldname: part.fieldname, filename: part.filename, mimetype: part.mimetype, data: buffer });
+    } else {
+      fields[part.fieldname] = part.value;
+    }
+  }
+
+  // Logo harus ada
+  const logoFile = fileParts.find(f => f.fieldname === 'logo');
+  if (!logoFile) {
     return _reply.code(400).send({ message: 'logo tidak boleh kosong' });
   }
 
-  if (!ALLOWED_MIMETYPES.includes(file.mimetype)) {
+  if (!ALLOWED_MIMETYPES.includes(logoFile.mimetype)) {
     return _reply.code(400).send({ message: `Hanya jenis file berikut yang diizinkan: ${ALLOWED_MIMETYPES.join(', ')}` });
   }
 
-  // Baca data file jadi buffer
-  const fileBuffer = await file.toBuffer();
-
-  // Buat object params dari body
-  const params: CreateTenant = await createTenantSchema.validate(_request.body);
+  // Validasi dengan Yup
+  const params: CreateTenant = await createTenantSchema.validate(fields);
 
   // Buat nama file baru
-  const fileName = `logo-perusahaan-${Date.now()}-${randomBytes(4).toString("hex")}${extname(file.filename)}`;
+  const fileName = `logo-perusahaan-${Date.now()}-${randomBytes(4).toString("hex")}${extname(logoFile.filename)}`;
 
   // Tulis file
   await new Promise<void>((resolve, reject) => {
-    fs.writeFile(`${process.env.MONITORING_UPLOAD}logo/${fileName}`, fileBuffer, (err) => {
+    fs.writeFile(`${process.env.MONITORING_UPLOAD}logo/${fileName}`, logoFile.data, (err) => {
       if (err) reject(err);
       else resolve();
     });
@@ -58,7 +68,21 @@ const create = async (_request: FastifyRequest, _reply: FastifyReply) => {
 };
 
 const update = async (_request: FastifyRequest, _reply: FastifyReply) => {
-  const params = await updateTenantSchema.validate(_request.body);
+  const req = _request as any;
+
+  const fields: Record<string, any> = {};
+  const fileParts: any[] = [];
+
+  for await (const part of req.parts()) {
+    if (part.type === 'file') {
+      const buffer = await part.toBuffer();
+      fileParts.push({ fieldname: part.fieldname, filename: part.filename, mimetype: part.mimetype, data: buffer });
+    } else {
+      fields[part.fieldname] = part.value;
+    }
+  }
+
+  const params = await updateTenantSchema.validate(fields);
   const { id } = params
   if (!id || id < 0) {
     return
@@ -71,25 +95,21 @@ const update = async (_request: FastifyRequest, _reply: FastifyReply) => {
   }
 
   let filename = '';
-  const req = _request as any;
-  const file = await req.file();
+  const logoFile = fileParts.find(f => f.fieldname === 'logo');
 
-  if (file) {
-    if (!ALLOWED_MIMETYPES.includes(file.mimetype)) {
+  if (logoFile) {
+    if (!ALLOWED_MIMETYPES.includes(logoFile.mimetype)) {
       return _reply.code(400).send({ message: `Hanya jenis file berikut yang diizinkan: ${ALLOWED_MIMETYPES.join(', ')}` });
     }
-
-    const fileBuffer = await file.toBuffer();
-    filename = `logo-perusahaan-${Date.now()}-${randomBytes(4).toString("hex")}${extname(file.filename)}`;
+    filename = `logo-perusahaan-${Date.now()}-${randomBytes(4).toString("hex")}${extname(logoFile.filename)}`;
 
     await new Promise<void>((resolve, reject) => {
-      fs.writeFile(`${process.env.MONITORING_UPLOAD}logo/${filename}`, fileBuffer, (err) => {
+      fs.writeFile(`${process.env.MONITORING_UPLOAD}logo/${filename}`, logoFile.data, (err) => {
         if (err) reject(err);
         else resolve();
       });
     });
 
-    // Hapus logo lama
     fs.unlink(`${process.env.MONITORING_UPLOAD}logo/${tenant.logo}`, (err) => {
       if (err) console.log('gagal hapus logo lama:', err.message);
       else console.log('logo lama dihapus');
