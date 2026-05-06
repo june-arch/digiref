@@ -219,6 +219,7 @@ export default async function authController(fastify: FastifyInstance) {
     schema: TenantDeleteSchema
   });
   fastify.register(require('@fastify/multipart'), {
+    addToBody: true,
     limits: { fileSize: 5 * 1024 * 1024 }
   });
   fastify.post("/", {
