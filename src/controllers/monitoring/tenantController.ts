@@ -14,13 +14,13 @@ import { validPassword } from "../../services/authService";
 import { ALLOWED_MIMETYPES } from "../../dto/tenantDto";
 
 const create = async (_request: FastifyRequest, _reply: FastifyReply) => {
-  const params = await createTenantSchema.validate(_request.body);
+  const params: any = await createTenantSchema.validate(_request.body);
 
-  const file = (params as any).logo;
-  if (!file || !file.data) {
+  if (!params.logo || !params.logo[0]) {
     return _reply.code(400).send({ message: 'logo tidak boleh kosong' });
   }
 
+  const file = params.logo[0];
   if (!ALLOWED_MIMETYPES.includes(file.mimetype)) {
     return _reply.code(400).send({ message: `Hanya jenis file berikut yang diizinkan: ${ALLOWED_MIMETYPES.join(', ')}` });
   }
@@ -63,9 +63,9 @@ const update = async (_request: FastifyRequest, _reply: FastifyReply) => {
   }
 
   let filename = '';
-  const file = params.logo;
+  const file = params.logo && params.logo[0] ? params.logo[0] : null;
 
-  if (file && file.data) {
+  if (file) {
     if (!ALLOWED_MIMETYPES.includes(file.mimetype)) {
       return _reply.code(400).send({ message: `Hanya jenis file berikut yang diizinkan: ${ALLOWED_MIMETYPES.join(', ')}` });
     }

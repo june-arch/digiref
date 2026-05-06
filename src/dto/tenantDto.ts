@@ -1,4 +1,4 @@
-import { number, object, string, InferType } from "yup";
+import { number, object, string, array, InferType } from "yup";
 
 export const ALLOWED_MIMETYPES = ['image/jpeg', 'image/png', 'image/jpg', 'image/JPEG', 'image/PNG', 'image/JPG'];
 
@@ -19,6 +19,7 @@ export const createTenantSchema = object({
   village_id: coerceNumber().required(),
   postcode_id: coerceNumber().required(),
   role_id: coerceNumber().required(),
+  logo: array().optional(),
 });
 
 export type CreateTenant = InferType<typeof createTenantSchema>;
@@ -35,6 +36,7 @@ export const updateTenantSchema = object({
   village_id: coerceNumber().optional(),
   postcode_id: coerceNumber().optional(),
   role_id: coerceNumber().optional(),
+  logo: array().optional(),
 });
 
 export type UpdateTenant = InferType<typeof updateTenantSchema>;
