@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
-import { TenantAssignProjectDeviceSchema, TenantCreateSchema, TenantDeleteSchema, TenantIndexSchema, TenantShowSchema, TenantUpdateSchema } from "../../documentation/monitoring/tenantApi";
+import { TenantAssignProjectDeviceSchema, TenantDeleteSchema, TenantIndexSchema, TenantShowSchema, TenantUpdateSchema } from "../../documentation/monitoring/tenantApi";
 import { assignProjectDeviceTenantSchema } from "../../dto/tenantAssignProjectDeviceDto";
 import { changePasswordTenantSchema, CreateTenant, createTenantSchema, updateTenantSchema } from "../../dto/tenantDto";
 
@@ -202,12 +202,10 @@ export default async function authController(fastify: FastifyInstance) {
   fastify.post("/", {
     preHandler: [authMiddleware],
     handler: create,
-    schema: TenantCreateSchema
   });
   fastify.put("/", {
     preHandler: [authMiddleware],
     handler: update,
-    schema: TenantUpdateSchema
   });
   fastify.get("/", {
     preHandler: [authMiddleware],
