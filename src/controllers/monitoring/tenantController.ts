@@ -198,7 +198,9 @@ export default async function authController(fastify: FastifyInstance) {
     handler: deleteTenant,
     schema: TenantDeleteSchema
   });
-  fastify.register(require('@fastify/multipart'));
+  fastify.register(require('@fastify/multipart'), {
+    limits: { fileSize: 5 * 1024 * 1024 }
+  });
   fastify.post("/", {
     preHandler: [authMiddleware],
     handler: create,

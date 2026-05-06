@@ -2,6 +2,12 @@ import { number, object, string, InferType } from "yup";
 
 export const ALLOWED_MIMETYPES = ['image/jpeg', 'image/png', 'image/jpg', 'image/JPEG', 'image/PNG', 'image/JPG'];
 
+// FormData kirim semua field sebagai string — coerce ke number
+const coerceNumber = () => number().transform((_value, original) => {
+  const n = Number(original);
+  return isNaN(n) ? undefined : n;
+});
+
 export const createTenantSchema = object({
   username: string().required(),
   password: string().required(),
@@ -10,15 +16,15 @@ export const createTenantSchema = object({
   no_hp: string().required(),
   alamat: string().required(),
   contact_person: string().required(),
-  village_id: number().required(),
-  postcode_id: number().required(),
-  role_id: number().required(),
+  village_id: coerceNumber().required(),
+  postcode_id: coerceNumber().required(),
+  role_id: coerceNumber().required(),
 });
 
 export type CreateTenant = InferType<typeof createTenantSchema>;
 
 export const updateTenantSchema = object({
-  id: number().optional(),
+  id: coerceNumber().optional(),
   username: string().optional(),
   password: string().optional(),
   name: string().optional(),
@@ -26,9 +32,9 @@ export const updateTenantSchema = object({
   no_hp: string().optional(),
   alamat: string().optional(),
   contact_person: string().optional(),
-  village_id: number().optional(),
-  postcode_id: number().optional(),
-  role_id: number().optional(),
+  village_id: coerceNumber().optional(),
+  postcode_id: coerceNumber().optional(),
+  role_id: coerceNumber().optional(),
 });
 
 export type UpdateTenant = InferType<typeof updateTenantSchema>;
