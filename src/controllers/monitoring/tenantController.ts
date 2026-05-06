@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { TenantAssignProjectDeviceSchema, TenantDeleteSchema, TenantIndexSchema, TenantShowSchema, TenantUpdateSchema } from "../../documentation/monitoring/tenantApi";
 import { assignProjectDeviceTenantSchema } from "../../dto/tenantAssignProjectDeviceDto";
-import { changePasswordTenantSchema, CreateTenant, createTenantSchema, updateTenantSchema } from "../../dto/tenantDto";
+import { changePasswordTenantSchema, createTenantSchema, updateTenantSchema } from "../../dto/tenantDto";
 
 import authMiddleware from "../../middlewares/authMiddleware";
 import { deleteAdmin, findAll, findById, insert, update as updateTenat, updatePassword } from "../../repositories/tenantRepository";
@@ -14,40 +14,21 @@ import { validPassword } from "../../services/authService";
 import { ALLOWED_MIMETYPES } from "../../dto/tenantDto";
 
 const create = async (_request: FastifyRequest, _reply: FastifyReply) => {
-  const req = _request as any;
+  const params = await createTenantSchema.validate(_request.body);
 
-  // Baca semua parts dari multipart
-  const fields: Record<string, any> = {};
-  const fileParts: any[] = [];
-
-  for await (const part of req.parts()) {
-    if (part.type === 'file') {
-      const buffer = await part.toBuffer();
-      fileParts.push({ fieldname: part.fieldname, filename: part.filename, mimetype: part.mimetype, data: buffer });
-    } else {
-      fields[part.fieldname] = part.value;
-    }
-  }
-
-  // Logo harus ada
-  const logoFile = fileParts.find(f => f.fieldname === 'logo');
-  if (!logoFile) {
+  const file = (params as any).logo;
+  if (!file || !file.data) {
     return _reply.code(400).send({ message: 'logo tidak boleh kosong' });
   }
 
-  if (!ALLOWED_MIMETYPES.includes(logoFile.mimetype)) {
+  if (!ALLOWED_MIMETYPES.includes(file.mimetype)) {
     return _reply.code(400).send({ message: `Hanya jenis file berikut yang diizinkan: ${ALLOWED_MIMETYPES.join(', ')}` });
   }
 
-  // Validasi dengan Yup
-  const params: CreateTenant = await createTenantSchema.validate(fields);
+  const fileName = `logo-perusahaan-${Date.now()}-${randomBytes(4).toString('hex')}${extname(file.filename)}`;
 
-  // Buat nama file baru
-  const fileName = `logo-perusahaan-${Date.now()}-${randomBytes(4).toString("hex")}${extname(logoFile.filename)}`;
-
-  // Tulis file
   await new Promise<void>((resolve, reject) => {
-    fs.writeFile(`${process.env.MONITORING_UPLOAD}logo/${fileName}`, logoFile.data, (err) => {
+    fs.writeFile(`${process.env.MONITORING_UPLOAD}logo/${fileName}`, file.data, (err) => {
       if (err) reject(err);
       else resolve();
     });
@@ -68,24 +49,11 @@ const create = async (_request: FastifyRequest, _reply: FastifyReply) => {
 };
 
 const update = async (_request: FastifyRequest, _reply: FastifyReply) => {
-  const req = _request as any;
+  const params: any = await updateTenantSchema.validate(_request.body);
 
-  const fields: Record<string, any> = {};
-  const fileParts: any[] = [];
-
-  for await (const part of req.parts()) {
-    if (part.type === 'file') {
-      const buffer = await part.toBuffer();
-      fileParts.push({ fieldname: part.fieldname, filename: part.filename, mimetype: part.mimetype, data: buffer });
-    } else {
-      fields[part.fieldname] = part.value;
-    }
-  }
-
-  const params = await updateTenantSchema.validate(fields);
-  const { id } = params
+  const { id } = params;
   if (!id || id < 0) {
-    return
+    return;
   }
 
   const tenant = await findById(id);
@@ -95,16 +63,16 @@ const update = async (_request: FastifyRequest, _reply: FastifyReply) => {
   }
 
   let filename = '';
-  const logoFile = fileParts.find(f => f.fieldname === 'logo');
+  const file = params.logo;
 
-  if (logoFile) {
-    if (!ALLOWED_MIMETYPES.includes(logoFile.mimetype)) {
+  if (file && file.data) {
+    if (!ALLOWED_MIMETYPES.includes(file.mimetype)) {
       return _reply.code(400).send({ message: `Hanya jenis file berikut yang diizinkan: ${ALLOWED_MIMETYPES.join(', ')}` });
     }
-    filename = `logo-perusahaan-${Date.now()}-${randomBytes(4).toString("hex")}${extname(logoFile.filename)}`;
+    filename = `logo-perusahaan-${Date.now()}-${randomBytes(4).toString('hex')}${extname(file.filename)}`;
 
     await new Promise<void>((resolve, reject) => {
-      fs.writeFile(`${process.env.MONITORING_UPLOAD}logo/${filename}`, logoFile.data, (err) => {
+      fs.writeFile(`${process.env.MONITORING_UPLOAD}logo/${filename}`, file.data, (err) => {
         if (err) reject(err);
         else resolve();
       });
