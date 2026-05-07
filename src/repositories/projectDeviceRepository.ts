@@ -72,6 +72,7 @@ export async function insert(
     chiller_type_id,
     village_id,
     postcode_id,
+    project_id,
   } = params;
   return db(TABLE)
     .insert({
@@ -84,6 +85,7 @@ export async function insert(
       chiller_type_id,
       village_id,
       postcode_id,
+      project_id,
     })
     .returning("id");
 }
@@ -102,6 +104,7 @@ export async function update(
     chiller_type_id,
     village_id,
     postcode_id,
+    project_id,
   } = params;
   return db(TABLE).where("id", id).update({
     name,
@@ -113,6 +116,7 @@ export async function update(
     chiller_type_id,
     village_id,
     postcode_id,
+    project_id,
   });
 }
 

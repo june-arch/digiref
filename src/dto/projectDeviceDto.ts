@@ -12,6 +12,7 @@ export const createUpdateProjectSchema = object({
   chiller_type_id: number().required(),
   village_id: number().required(),
   postcode_id: number().required(),
+  project_id: number().optional(),
 });
 
 export type CreateProjectType = InferType<typeof createUpdateProjectSchema>;
