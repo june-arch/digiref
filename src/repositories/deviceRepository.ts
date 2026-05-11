@@ -3,8 +3,16 @@ import { UpdateDeviceType } from "../dto/deviceDto";
 
 const TABLE = "devices";
 
-export async function findAll() {
-  return db.select("id", "name", "imei", 'sim_id', 'analog_1', 'analog_2', 'kalibrasi_1', 'kalibrasi_2', 'kalibrasi_temperatur_1', 'kalibrasi_temperatur_2', 'kalibrasi_temperatur_3', 'kalibrasi_temperatur_4').from(TABLE);
+export async function findAll(roleId: number, companyId?: number) {
+  if (roleId === 1) {
+    // Admin: return all devices
+    return db.select("id", "name", "imei", 'sim_id', 'analog_1', 'analog_2', 'kalibrasi_1', 'kalibrasi_2', 'kalibrasi_temperatur_1', 'kalibrasi_temperatur_2', 'kalibrasi_temperatur_3', 'kalibrasi_temperatur_4').from(TABLE);
+  }
+  // Non-admin (tenant): filter by company_id from project_devices
+  return db.select("d.id", "d.name", "d.imei", 'd.sim_id', 'd.analog_1', 'd.analog_2', 'd.kalibrasi_1', 'd.kalibrasi_2', 'd.kalibrasi_temperatur_1', 'd.kalibrasi_temperatur_2', 'd.kalibrasi_temperatur_3', 'd.kalibrasi_temperatur_4')
+    .from(`${TABLE} as d`)
+    .join('project_devices as pd', 'd.id', 'pd.device_id')
+    .where('pd.company_id', companyId);
 }
 
 export async function insert({ name, imei, sim_id, analog_1, analog_2, kalibrasi_1, kalibrasi_2, kalibrasi_temperatur_1, kalibrasi_temperatur_2, kalibrasi_temperatur_3, kalibrasi_temperatur_4 }: { name: string, imei: string, sim_id: string, analog_1: string, analog_2: string, kalibrasi_1: string, kalibrasi_2: string, kalibrasi_temperatur_1: string, kalibrasi_temperatur_2: string, kalibrasi_temperatur_3: string, kalibrasi_temperatur_4: string, }): Promise<{ id: number }[]> {
