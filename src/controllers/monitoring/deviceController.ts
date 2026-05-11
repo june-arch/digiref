@@ -7,8 +7,8 @@ import { sendCommandTruephone } from "../../helper/truphone";
 
 
 const index = async (_request: FastifyRequest, _reply: FastifyReply) => {
-  const user = (_request as any).user as { adminId: number; roleId: number; companyId?: number };
-  const devices = await findAll(user.roleId, user.companyId);
+  const user = (_request as any).user as { adminId: number; roleId: number };
+  const devices = await findAll(user.roleId, user.adminId);
   _reply.send(devices.map(item => ({...item, kalibrasi_1: Number(item.kalibrasi_1) ?? 0, kalibrasi_2: Number(item.kalibrasi_2) ?? 0})));
 };
 
