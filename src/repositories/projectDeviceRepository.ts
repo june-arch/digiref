@@ -73,6 +73,10 @@ export async function insert(
     village_id,
     postcode_id,
     project_id,
+    province_id,
+    district_id,
+    regency_id,
+    company_id,
   } = params;
   return db(TABLE)
     .insert({
@@ -86,6 +90,10 @@ export async function insert(
       village_id,
       postcode_id,
       project_id,
+      province_id,
+      district_id,
+      regency_id,
+      company_id,
     })
     .returning("id");
 }
@@ -105,6 +113,10 @@ export async function update(
     village_id,
     postcode_id,
     project_id,
+    province_id,
+    district_id,
+    regency_id,
+    company_id,
   } = params;
   return db(TABLE).where("id", id).update({
     name,
@@ -117,6 +129,10 @@ export async function update(
     village_id,
     postcode_id,
     project_id,
+    province_id,
+    district_id,
+    regency_id,
+    company_id,
   });
 }
 

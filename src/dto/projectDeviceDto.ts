@@ -13,6 +13,10 @@ export const createUpdateProjectSchema = object({
   village_id: number().required(),
   postcode_id: number().required(),
   project_id: number().optional(),
+  province_id: number().required(),
+  district_id: number().required(),
+  regency_id: number().required(),
+  company_id: number().optional(),
 });
 
 export type CreateProjectType = InferType<typeof createUpdateProjectSchema>;
